@@ -1,130 +1,124 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
+/* =========================================================
+   VARIÁVEIS
+========================================================= */
 :root{
-  --bg: #f6f9fc;
-  --card: #ffffff;
+  --bg:#f6f9fc;
+  --card:#ffffff;
 
-  --text: #0b1f3a;
-  --muted: #566b83;
+  --text:#0b1f3a;
+  --muted:#566b83;
 
   --green-900:#0b3b2e;
   --green-700:#0f5f47;
   --yellow:#f4c430;
   --blue:#114aa6;
 
-  --border: rgba(11,31,58,.12);
-  --radius: 16px;
+  --border:rgba(11,31,58,.12);
+  --radius:16px;
 
-  --shadow: 0 10px 30px rgba(15,23,42,.07);
-  --shadow2: 0 18px 44px rgba(15,23,42,.10);
+  --shadow:0 10px 30px rgba(15,23,42,.07);
+  --shadow2:0 18px 44px rgba(15,23,42,.12);
 
-  --font-display: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font:'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
+/* =========================================================
+   RESET
+========================================================= */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 
 body{
   margin:0;
-  font-family:var(--font-body);
+  font-family:var(--font);
   color:var(--text);
   line-height:1.6;
 
-  background: var(--bg);
+  background:var(--bg);
   background-image:
     radial-gradient(900px 420px at 12% -10%, rgba(244,196,48,.16), transparent 60%),
     radial-gradient(900px 420px at 88% -10%, rgba(17,74,166,.10), transparent 60%);
-  background-attachment: fixed;
+  background-attachment:fixed;
 
   display:flex;
   flex-direction:column;
 }
 
 a{ color:inherit; text-decoration:none; transition:.15s ease; }
-h1,h2,h3,h4,.btn,label{ font-family: var(--font-display); }
+h1,h2,h3,h4,.btn,label{ font-family:var(--font); }
 
+/* =========================================================
+   LAYOUT
+========================================================= */
 .container{
-  width:100%;
   max-width:1120px;
   margin:0 auto;
   padding:22px;
+  width:100%;
   flex:1;
 }
 
-/* =========================================
-   TOPBAR – PREMIUM + NOME GRANDE
-========================================= */
+.muted{ color:var(--muted); }
+
+/* =========================================================
+   TOPBAR
+========================================================= */
 .topbar{
   position:sticky;
   top:0;
   z-index:100;
 
-  background: linear-gradient(90deg, var(--green-900), var(--green-700));
-  border-bottom: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  background:linear-gradient(90deg,var(--green-900),var(--green-700));
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
 
-  padding: 20px 0; /* MAIS PRESENÇA */
+  padding:20px 0;
 }
 
 .topbar-inner{
   max-width:1120px;
   margin:auto;
-  padding: 0 22px;
+  padding:0 22px;
 
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:14px;
+  gap:16px;
 }
 
 /* Marca */
-.brand{
-  display:flex;
-  align-items:center;
-}
-
 .brand-link{
   display:flex;
   align-items:center;
   gap:16px;
 }
 
-/* Logo */
 .logo-img{
   height:64px;
   width:auto;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,.32));
-  transition: transform .2s ease, filter .2s ease;
-}
-.brand-link:hover .logo-img{
-  transform: translateY(-1px) scale(1.04);
-  filter: drop-shadow(0 14px 22px rgba(0,0,0,.36));
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.32));
 }
 
-/* Texto da marca */
 .brand-text{
   display:flex;
   flex-direction:column;
-  line-height:1.05;
-}
-
-/* ✅ “Ipê” GRANDE */
-.brand-name{
-  font-weight:900;
-  font-size:32px;
-  letter-spacing:-1.5px;
-  color:#fff;
   line-height:1;
 }
 
-/* Subtítulo */
+.brand-name{
+  font-weight:900;
+  font-size:32px;
+  letter-spacing:-1.4px;
+  color:#fff;
+}
+
 .brand-subtitle{
-  color:rgba(255,255,255,.85);
+  margin-top:3px;
   font-size:12px;
   font-weight:600;
-  margin-top:2px;
-  max-width:240px;
+  color:rgba(255,255,255,.85);
 }
 
 /* Nav */
@@ -136,15 +130,15 @@ h1,h2,h3,h4,.btn,label{ font-family: var(--font-display); }
 }
 
 .nav a{
-  color:rgba(255,255,255,.92);
   font-weight:800;
   font-size:14px;
   padding:8px 12px;
   border-radius:12px;
+  color:rgba(255,255,255,.92);
 }
+
 .nav a:hover{
-  background: rgba(255,255,255,.14);
-  color:#fff;
+  background:rgba(255,255,255,.15);
 }
 
 /* Botões */
@@ -159,207 +153,167 @@ h1,h2,h3,h4,.btn,label{ font-family: var(--font-display); }
   font-weight:900;
   font-size:14px;
 
-  border:1px solid rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.2);
   cursor:pointer;
 
-  background: linear-gradient(180deg, #ffd24a, var(--yellow));
+  background:linear-gradient(180deg,#ffd24a,var(--yellow));
   color:#2f2300;
 
-  box-shadow: 0 10px 20px rgba(244,196,48,.25);
-  transition:.18s ease;
+  box-shadow:0 10px 20px rgba(244,196,48,.25);
 }
 
-.btn:hover{
-  transform: translateY(-1px);
-  filter: brightness(1.03);
-}
+.btn:hover{ transform:translateY(-1px); }
 
 .btn.ghost{
-  background: transparent;
+  background:transparent;
   color:#fff;
-  border:1px solid rgba(255,255,255,.35);
   box-shadow:none;
+  border:1px solid rgba(255,255,255,.35);
 }
 
-/* =========================================
-   CARDS / GRID / TIPOGRAFIA
-========================================= */
-.card, .hero-card{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.card{
-  padding:18px;
-  transition:.2s ease;
-}
-.card:hover{
-  transform: translateY(-4px);
-  box-shadow: var(--shadow2);
-}
-
-.muted{ color: var(--muted); }
-
-/* =========================================
+/* =========================================================
    HERO
-========================================= */
+========================================================= */
 .hero{
   display:grid;
-  grid-template-columns: 1.2fr .8fr;
+  grid-template-columns:1.2fr .8fr;
   gap:18px;
-  align-items:start;
-  margin: 10px 0 22px;
+  margin:14px 0 24px;
 }
 
 .hero-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
   padding:22px;
+  box-shadow:var(--shadow);
 }
 
 .hero-card h1{
   margin:0 0 10px;
   font-size:34px;
   letter-spacing:-1px;
-  line-height:1.05;
 }
+
 .hero-card p{
   margin:0 0 14px;
-  font-size:16px;
 }
 
 /* Callout */
 .callout{
-  background: rgba(255,255,255,.75);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background:rgba(255,255,255,.8);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
   padding:18px;
-  box-shadow: var(--shadow);
+  box-shadow:var(--shadow);
 
   display:flex;
   gap:14px;
-  align-items:flex-start;
 }
 
 .callout-icon{
-  width:44px; height:44px;
+  width:44px;
+  height:44px;
   border-radius:14px;
+
   display:flex;
   align-items:center;
   justify-content:center;
 
-  background: rgba(244,196,48,.18);
-  border: 1px solid rgba(244,196,48,.35);
-  font-size:18px;
+  background:rgba(244,196,48,.18);
+  border:1px solid rgba(244,196,48,.35);
 }
 
-.callout-title{
-  display:block;
-  font-weight:900;
-  margin:0 0 4px;
-}
-
-/* =========================================
-   FILTRO / INPUTS
-========================================= */
+/* =========================================================
+   FILTROS
+========================================================= */
 .search-bar{
   display:flex;
   gap:10px;
-  align-items:center;
   margin-top:14px;
 }
 
-select, input, textarea{
+input,select,textarea{
   width:100%;
-  padding:12px 12px;
+  padding:12px;
   border-radius:12px;
-  border: 1px solid var(--border);
-  background:#fff;
-  font-family: inherit;
+  border:1px solid var(--border);
+  font-family:inherit;
   font-size:14px;
+}
+
+input:focus,select:focus,textarea:focus{
   outline:none;
-  transition:.18s ease;
+  border-color:rgba(17,74,166,.6);
+  box-shadow:0 0 0 4px rgba(17,74,166,.12);
 }
-
-select:focus, input:focus, textarea:focus{
-  border-color: rgba(17,74,166,.55);
-  box-shadow: 0 0 0 4px rgba(17,74,166,.12);
-}
-
-.search-bar select{ flex:1; }
-.search-bar .btn{ white-space:nowrap; box-shadow:none; }
 
 .filters-area{
   display:flex;
   gap:10px;
-  align-items:center;
   flex-wrap:wrap;
   margin-top:10px;
 }
 
 .chip{
-  display:inline-flex;
-  align-items:center;
   padding:6px 12px;
   border-radius:999px;
-
-  background: rgba(17,74,166,.08);
-  border: 1px solid rgba(17,74,166,.16);
-  color: var(--blue);
-
   font-weight:900;
   font-size:12px;
+
+  background:rgba(17,74,166,.08);
+  border:1px solid rgba(17,74,166,.16);
+  color:var(--blue);
 }
 
-.chip:hover{ background: rgba(17,74,166,.12); }
-
-/* =========================================
-   GRID POSTS
-========================================= */
+/* =========================================================
+   GRID / CARDS
+========================================================= */
 .grid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
   gap:16px;
+}
+
+.card{
+  position:relative;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  transition:.2s ease;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow2);
 }
 
 .card-header{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:10px;
   margin-bottom:10px;
 }
 
-.badge-area{
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:.4px;
-  text-transform:uppercase;
-
-  background:#f1f5f9;
-  padding:5px 10px;
-  border-radius:999px;
-}
-
+.badge-area,
 .badge-evidencia{
   font-size:11px;
   font-weight:900;
-  letter-spacing:.4px;
-  text-transform:uppercase;
-
   padding:5px 10px;
   border-radius:999px;
+  text-transform:uppercase;
 }
+
+.badge-area{ background:#f1f5f9; }
 
 .badge-evidencia.forte{ background:#dcfce7; color:#14532d; }
 .badge-evidencia.moderada{ background:#fef9c3; color:#713f12; }
 .badge-evidencia.inicial{ background:#fee2e2; color:#7f1d1d; }
 
 .card-title{
-  margin: 0 0 10px;
   font-size:18px;
-  line-height:1.25;
-  letter-spacing:-.2px;
+  margin:0 0 10px;
 }
 
 .card-img{
@@ -367,120 +321,96 @@ select:focus, input:focus, textarea:focus{
   height:170px;
   object-fit:cover;
   border-radius:14px;
-  border:1px solid rgba(0,0,0,.06);
-  margin: 6px 0 12px;
+  margin:8px 0 12px;
 }
 
+/* Card clicável */
+.card-click{ position:relative; }
+.card-overlay{
+  position:absolute;
+  inset:0;
+  z-index:1;
+}
+.card-click > *{ position:relative; z-index:2; }
+
+/* Ações */
 .actions{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:12px;
 
-  padding-top:12px;
   margin-top:12px;
+  padding-top:12px;
   border-top:1px solid var(--border);
 }
 
 .btn-perfil{
   font-weight:900;
-  color: var(--muted);
   font-size:13px;
+  color:var(--muted);
 }
 
 .btn-link{
   font-weight:900;
-  color: var(--blue);
   font-size:13px;
+  color:var(--blue);
 }
-.btn-link:hover{ text-decoration: underline; }
 
-/* =========================================
+/* =========================================================
    FLASH
-========================================= */
-.flash-stack{ margin-bottom: 14px; display:grid; gap:10px; }
+========================================================= */
+.flash-stack{ display:grid; gap:10px; margin-bottom:14px; }
 
 .flash{
   padding:12px 14px;
   border-radius:14px;
   font-weight:800;
-
-  border: 1px solid rgba(0,0,0,.06);
-  background:#ecfdf5;
-  color:#065f46;
 }
 
 .flash.error{
   background:#fef2f2;
   color:#991b1b;
-  border-color:#fee2e2;
 }
 
 .flash.success{
   background:#ecfdf5;
   color:#065f46;
-  border-color:#d1fae5;
 }
 
-/* =========================================
+/* =========================================================
    FOOTER
-========================================= */
+========================================================= */
 .footer{
   margin-top:auto;
-  background: rgba(255,255,255,.75);
-  border-top: 1px solid var(--border);
+  background:rgba(255,255,255,.8);
+  border-top:1px solid var(--border);
 }
 
 .footer-inner{
   max-width:1120px;
   margin:auto;
   padding:18px 22px;
-
   display:flex;
   justify-content:space-between;
-  gap:12px;
   flex-wrap:wrap;
 }
 
-/* =========================================
-   PÁGINAS INTERNAS (Sobre / Perfil / Publicar)
-========================================= */
-.page-head{
-  text-align:center;
-  margin: 14px 0 18px;
-}
-.page-head h1{
-  margin:0 0 6px;
-  font-size: 34px;
-  letter-spacing: -1px;
-}
-.page-head p{
-  margin:0 auto;
-  max-width: 820px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* =========================================
+/* =========================================================
    MOBILE
-========================================= */
-@media (max-width: 860px){
-  .hero{ grid-template-columns: 1fr; }
+========================================================= */
+@media(max-width:860px){
+  .hero{ grid-template-columns:1fr; }
 }
 
-@media (max-width: 768px){
+@media(max-width:768px){
   .brand-subtitle{ display:none; }
   .logo-img{ height:48px; }
-  .brand-name{ font-size:24px; letter-spacing:-1px; }
+  .brand-name{ font-size:24px; }
 }
 
-@media (max-width: 520px){
-  .topbar-inner{ padding: 0 14px; }
-  .logo-img{ height:44px; }
-  .brand-name{ font-size:22px; }
-  .nav a{ padding:8px 10px; font-size:13px; }
-  .hero-card h1{ font-size:28px; }
+@media(max-width:520px){
   .search-bar{ flex-direction:column; }
   .search-bar .btn{ width:100%; }
+  .brand-name{ font-size:22px; }
 }

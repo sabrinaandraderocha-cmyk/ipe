@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Sobre o Ipê</h1>
+  <p>
+    O Ipê é uma vitrine de divulgação científica brasileira: pesquisadores publicam a essência do trabalho em
+    linguagem clara, com <b>link original obrigatório (DOI/artigo/tese)</b> para quem quiser conferir a fonte.
+  </p>
+
+  <div class="page-kpis">
+    <span class="kpi">Ciência aberta</span>
+    <span class="kpi">Clareza</span>
+    <span class="kpi">Impacto social</span>
+    <span class="kpi">Brasil</span>
+  </div>
+</div>
+
+<div class="about-grid">
+
+  <div class="card">
+    <h2 style="margin-top:0;">Por que o Ipê existe?</h2>
+    <p class="muted">
+      Todo ano, o Brasil produz pesquisas valiosas — mas elas muitas vezes ficam “presas” em PDFs técnicos e ambientes fechados.
+      O Ipê nasce para encurtar a distância entre quem pesquisa e quem precisa entender.
+    </p>
+
+    <div class="card" style="background:rgba(17,74,166,.05); border-color: rgba(17,74,166,.14); margin-top:14px;">
+      <h3 style="margin:0 0 6px;">🌿 Missão</h3>
+      <p class="muted" style="margin:0;">
+        Transformar pesquisa brasileira em conteúdo compreensível, citável e útil para a sociedade.
+      </p>
+    </div>
+
+    <div class="card" style="background:rgba(244,196,48,.16); border-color: rgba(244,196,48,.28); margin-top:12px;">
+      <h3 style="margin:0 0 6px;">🎯 Como você escreve aqui</h3>
+      <p class="muted" style="margin:0;">
+        Em vez de “resumo acadêmico”, você publica: <b>o que descobriu</b>, <b>por que importa</b> e <b>o que muda na prática</b>.
+        Clareza antes de jargão.
+      </p>
+    </div>
+
+    <div style="margin-top:16px;">
+      <h3 style="margin:0 0 6px;">🔍 Validação</h3>
+      <p class="muted" style="margin:0;">
+        O Ipê não substitui <i>peer review</i>. É uma vitrine: toda postagem exige um link original (DOI/artigo/tese).
+      </p>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <div class="card beta-card">
+      <h3 style="margin-top:0;">Participe do Beta</h3>
+      <p class="muted" style="margin-top:0;">
+        Estamos em fase de convite fechado para manter qualidade e reduzir spam nas primeiras publicações.
+      </p>
+
+      {% if codigo_exemplo %}
+        <div class="beta-code">
+          <small>Código de acesso atual</small>
+          <b>{{ codigo_exemplo }}</b>
+        </div>
+      {% endif %}
+
+      <a class="btn" href="{{ url_for('register') }}">Criar minha conta</a>
+
+      {% if codigo_exemplo %}
+        <p class="muted" style="font-size:12px; margin:10px 0 0;">
+          Dica: em produção, o código pode ser definido por variável de ambiente (<b>IPE_INVITE_CODE</b>).
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Transparência</h3>
+      <p class="muted" style="margin-top:0;">
+        O Ipê é leve e replicável: Flask + banco (SQLite no local / Postgres no Neon em produção).
+      </p>
+
+      <div class="filters-area" style="margin-top:10px;">
+        <span class="chip">Python</span>
+        <span class="chip">Flask</span>
+        <span class="chip">Neon</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

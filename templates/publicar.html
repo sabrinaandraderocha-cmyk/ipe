@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- 🔥 GARANTE QUE "form" SEMPRE EXISTA -->
+{% set form = form if form is defined else {} %}
+
+<div class="page-head">
+  <h1>Publicar no Ipê</h1>
+  <p class="muted">Formato guiado para forçar simplificação (o “tradutor mental”).</p>
+</div>
+
+{% if erro %}
+  <div class="flash error">{{ erro }}</div>
+{% endif %}
+
+<form class="form card" method="POST">
+
+  <div class="two">
+    <div>
+      <label>Seu nome</label>
+      <input 
+        name="pesquisador"
+        value="{{ form.get('pesquisador','') }}"
+        placeholder="Ex: Sabrina Andrade Rocha"
+        required>
+    </div>
+
+    <div>
+      <label>Instituição (opcional)</label>
+      <input 
+        name="instituicao"
+        value="{{ form.get('instituicao','') }}"
+        placeholder="Ex: UFU">
+    </div>
+  </div>
+
+
+  <div class="two">
+    <div>
+      <label>Selecione a Grande Área</label>
+
+      <select name="area" required>
+        <option value="" disabled {{ 'selected' if not form.get('area') }}>
+          Selecione a Grande Área
+        </option>
+
+        {% for a in areas %}
+          <option value="{{ a }}" {{ 'selected' if form.get('area') == a }}>
+            {{ a }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>Nível de evidência</label>
+
+      <select name="evidencia">
+        {% for e in evidencias %}
+          <option value="{{ e }}" {{ 'selected' if form.get('evidencia','Inicial') == e }}>
+            {{ e }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+
+  <label>Título</label>
+  <input 
+    name="titulo"
+    value="{{ form.get('titulo','') }}"
+    placeholder="Título da pesquisa"
+    required>
+
+
+  <div class="two">
+    <div>
+      <label>Ano (opcional)</label>
+      <input 
+        name="ano"
+        value="{{ form.get('ano','') }}"
+        inputmode="numeric"
+        placeholder="Ex: 2026">
+    </div>
+
+    <div>
+      <label>Tags (opcional)</label>
+      <input 
+        name="tags"
+        value="{{ form.get('tags','') }}"
+        placeholder="Ex: ansiedade; adolescência; SUS">
+    </div>
+  </div>
+
+
+  <label>Descoberta principal (obrigatório)</label>
+  <textarea 
+    name="descoberta"
+    rows="4"
+    placeholder="Imagine que está explicando para um amigo no bar: O que você descobriu?"
+    required>{{ form.get('descoberta','') }}</textarea>
+
+
+  <label>Por que a sociedade deveria se importar com isso agora? (opcional)</label>
+  <textarea 
+    name="importancia"
+    rows="4"
+    placeholder="Por que isso importa hoje?">{{ form.get('importancia','') }}</textarea>
+
+
+  <label>Aplicação prática (opcional)</label>
+  <textarea 
+    name="aplicacao"
+    rows="4"
+    placeholder="O que muda na prática?">{{ form.get('aplicacao','') }}</textarea>
+
+
+  <label>Quem deveria saber disso? (opcional)</label>
+  <input 
+    name="publico"
+    value="{{ form.get('publico','') }}"
+    placeholder="Ex: profissionais, gestores, professores, legisladores...">
+
+
+  <label>Link do artigo original ou DOI (Validação Científica)</label>
+  <input 
+    name="link_original"
+    value="{{ form.get('link_original','') }}"
+    placeholder="Ex: https://doi.org/..."
+    required>
+
+
+  <label>URL de uma imagem ilustrativa (Opcional)</label>
+  <input 
+    name="imagem_url"
+    value="{{ form.get('imagem_url','') }}"
+    placeholder="Cole a URL de uma imagem (opcional)">
+
+
+  <label>Código de Convite (Peça ao admin)</label>
+  <input 
+    name="codigo_convite"
+    value="{{ form.get('codigo_convite','') }}"
+    placeholder="Código de Convite"
+    required
+    class="invite">
+
+
+  <div class="actions">
+    <button class="btn" type="submit">Publicar</button>
+    <a class="btn ghost" href="{{ url_for('index') }}">Cancelar</a>
+  </div>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container" style="max-width: 520px; margin-top: 60px;">
+
+  <div class="card">
+    <h2 style="text-align:center; margin-top:0;">Cadastro de Pesquisador</h2>
+
+    <p class="muted" style="text-align:center; margin-bottom: 18px;">
+      Crie sua conta para publicar pesquisas no Ipê. Rápido e gratuito.
+    </p>
+
+    <form method="POST" novalidate>
+
+      {# ✅ Convite só aparece se o backend exigir #}
+      {% if require_invite %}
+        <div class="form-group">
+          <label>Código de Convite</label>
+          <input
+            type="text"
+            name="codigo_convite"
+            required
+            placeholder="Ex: IPE2026"
+            value="{{ request.form.get('codigo_convite','') }}"
+            class="invite"
+            autocomplete="one-time-code"
+          >
+          <div class="muted" style="font-size: .85rem; margin-top: 6px;">
+            Convite fechado no momento para manter qualidade e reduzir spam.
+          </div>
+        </div>
+
+        <hr style="margin: 18px 0; border: 0; border-top: 1px solid var(--border);">
+      {% endif %}
+
+      <div class="form-group">
+        <label>Seu Nome Completo</label>
+        <input
+          type="text"
+          name="nome"
+          required
+          placeholder="Como aparecerá nas publicações"
+          value="{{ request.form.get('nome','') }}"
+          autocomplete="name"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Instituição (opcional)</label>
+        <input
+          type="text"
+          name="instituicao"
+          placeholder="Ex: USP, UFRJ, Fiocruz..."
+          value="{{ request.form.get('instituicao','') }}"
+          autocomplete="organization"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="seu@email.com"
+          value="{{ request.form.get('email','') }}"
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Senha</label>
+        <input
+          type="password"
+          name="senha"
+          required
+          placeholder="Mínimo 6 caracteres"
+          autocomplete="new-password"
+        >
+        <div class="muted" style="font-size: .85rem; margin-top: 6px;">
+          Dica: use uma senha com pelo menos 6 caracteres.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar Senha</label>
+        <input
+          type="password"
+          name="senha2"
+          required
+          placeholder="Digite a senha novamente"
+          autocomplete="new-password"
+        >
+      </div>
+
+      <button type="submit" class="btn" style="width: 100%;">
+        Criar Conta
+      </button>
+
+      <p style="text-align:center; margin-top: 14px; font-size: 0.95rem;">
+        Já tem conta?
+        <a href="{{ url_for('login') }}" style="color: var(--blue-700); font-weight: 800;">
+          Entrar
+        </a>
+      </p>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

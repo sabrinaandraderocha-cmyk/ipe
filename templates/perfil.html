@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+  <h1>👩‍🔬 {{ nome }}</h1>
+  <p class="muted">Publicações no Ipê</p>
+
+  <div style="margin-top: 10px;">
+    {% if current_user.is_authenticated %}
+      <a class="btn" href="{{ url_for('publicar') }}">Publicar nova pesquisa</a>
+    {% else %}
+      <a class="btn" href="{{ url_for('register') }}">Criar conta para publicar</a>
+      <a class="btn ghost" href="{{ url_for('login') }}">Entrar</a>
+    {% endif %}
+  </div>
+</div>
+
+<section class="grid">
+
+  {% if pesquisas|length == 0 %}
+    <div class="card empty" style="grid-column: 1 / -1; text-align:center; padding: 40px;">
+      <div style="font-size: 40px; margin-bottom: 10px;">🌱</div>
+      <h2>Ainda não há publicações.</h2>
+      <p class="muted">Se esta pessoa já publicou fora do Ipê, você pode convidar para trazer a pesquisa pra cá.</p>
+
+      <div style="margin-top: 16px;">
+        {% if current_user.is_authenticated %}
+          <a class="btn" href="{{ url_for('publicar') }}">Publicar a primeira</a>
+        {% else %}
+          <a class="btn" href="{{ url_for('register') }}">Criar conta</a>
+          <a class="btn ghost" href="{{ url_for('login') }}">Entrar</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% for p in pesquisas %}
+    <div class="card">
+      <div class="card-header">
+        <span class="badge-area">{{ p["area"] }}</span>
+        <span class="badge-evidencia {{ (p['evidencia'] or 'Inicial')|lower }}">
+          {{ p["evidencia"] or "Inicial" }}
+        </span>
+      </div>
+
+      <h2 class="card-title">{{ p["titulo"] }}</h2>
+
+      {% if p["imagem_url"] %}
+        <img src="{{ p["imagem_url"] }}" class="card-img" alt="Imagem ilustrativa">
+      {% endif %}
+
+      <p><b>O que é:</b> {{ p["descoberta"] }}</p>
+
+      <div class="actions" style="align-items:center;">
+        {% set d = (p["data_publicacao"] or "") %}
+        {% if d|length >= 10 %}
+          <span class="muted">📅 {{ d[8:10] }}/{{ d[5:7] }}/{{ d[0:4] }}</span>
+        {% else %}
+          <span class="muted">📅 —</span>
+        {% endif %}
+
+        <a href="{{ p["link_original"] }}" target="_blank" rel="noopener noreferrer" class="btn-link">
+          📄 Ver Original
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+
+</section>
+
+{% endblock %}

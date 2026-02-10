@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+
+  <div class="hero-card">
+    <h1>Pesquisas brasileiras, em linguagem clara.</h1>
+    <p class="muted">
+      Postagens curtas e citáveis, com link original. Ciência acessível — sem perder a fonte.
+    </p>
+
+    <form action="{{ url_for('index') }}" method="get" class="search-bar" id="areaForm">
+      <select name="area" id="areaSelect" aria-label="Filtrar por área">
+        <option value="">Todas as áreas</option>
+        {% for a in areas %}
+          <option value="{{ a }}" {% if filtro_area == a %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn">Aplicar</button>
+    </form>
+
+    <div class="filters-area" style="margin-top: 10px;">
+      <span class="muted" style="font-size: 0.85rem; font-weight:700;">Populares:</span>
+      <a href="{{ url_for('index', area='Saúde') }}" class="chip">Saúde</a>
+      <a href="{{ url_for('index', area='Tecnologia') }}" class="chip">Tecnologia</a>
+      <a href="{{ url_for('index') }}" class="chip" style="background:#fff;">Limpar</a>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">💡</div>
+    <div>
+      <span class="callout-title">A regra de ouro</span>
+      <p style="margin:0; font-size: 0.95rem;">
+        Imagine que você está explicando sua descoberta em um
+        <b>almoço de domingo</b>: sem termos difíceis, focando no impacto real.
+      </p>
+      <p class="muted" style="margin:10px 0 0; font-size: .9rem;">
+        Dica: escreva em 3 partes — <b>o que é</b>, <b>por que importa</b>, <b>o que muda</b>.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<section class="grid">
+
+  {% if not pesquisas %}
+    <div class="card" style="grid-column: 1 / -1; text-align:center; padding: 34px;">
+      <div style="font-size: 44px; margin-bottom: 8px;">🌱</div>
+      <h2 style="margin: 0 0 6px;">Nenhuma pesquisa encontrada.</h2>
+      <p class="muted" style="margin: 0 0 16px;">
+        Ainda não há publicações{% if filtro_area %} em <b>{{ filtro_area }}</b>{% endif %}.
+        Que tal plantar a primeira?
+      </p>
+
+      {% if current_user.is_authenticated %}
+        <a class="btn" href="{{ url_for('publicar') }}">Publicar agora</a>
+      {% else %}
+        <a class="btn" href="{{ url_for('login') }}">Entrar para publicar</a>
+        <div class="muted" style="font-size:.9rem; margin-top:10px;">
+          Sem conta? <a href="{{ url_for('register') }}" style="font-weight:900; color: var(--blue);">Cadastre-se</a>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% for p in pesquisas %}
+    <article class="card">
+
+      <div class="card-header">
+        <span class="badge-area">{{ p["area"] }}</span>
+        <span class="badge-evidencia {{ p['evidencia']|lower }}">{{ p["evidencia"] }}</span>
+      </div>
+
+      <h2 class="card-title">{{ p["titulo"] }}</h2>
+
+      {% if p["imagem_url"] %}
+        <img src="{{ p['imagem_url'] }}" class="card-img" alt="Imagem ilustrativa da pesquisa" loading="lazy">
+      {% endif %}
+
+      <p style="margin:0;">
+        <b>O que é:</b>
+        <span class="muted">{{ p["descoberta"] }}</span>
+      </p>
+
+      <div class="actions">
+        <a href="{{ url_for('perfil', nome=p['pesquisador']) }}" class="btn-perfil">👩‍🔬 {{ p["pesquisador"] }}</a>
+        <a href="{{ p['link_original'] }}" target="_blank" rel="noopener noreferrer" class="btn-link">📄 Ver original</a>
+      </div>
+
+    </article>
+  {% endfor %}
+
+</section>
+
+<script>
+  // UX: se trocar a área, aplica automaticamente (sem depender do botão).
+  // Mantém o botão como fallback.
+  (function(){
+    const sel = document.getElementById("areaSelect");
+    const form = document.getElementById("areaForm");
+    if(sel && form){
+      sel.addEventListener("change", () => form.submit());
+    }
+  })();
+</script>
+
+{% endblock %}

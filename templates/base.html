@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% block title %}Ipê | Ciência Brasileira{% endblock %}</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+
+    <div class="brand">
+      <a href="{{ url_for('index') }}" class="brand-link" aria-label="Página inicial do Ipê">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Ipê Ciência" class="logo-img">
+
+        <div class="brand-text">
+          <span class="brand-name">Ipê</span>
+          <span class="brand-subtitle">Onde a ciência brasileira floresce</span>
+        </div>
+      </a>
+    </div>
+
+    <nav class="nav" aria-label="Navegação principal">
+      <a href="{{ url_for('index') }}">Explorar</a>
+      <a href="{{ url_for('sobre') }}">Sobre</a>
+
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('publicar') }}" class="btn">Publicar</a>
+
+        {% set primeiro_nome = (current_user.nome or "Conta").split()[0] %}
+        <a href="{{ url_for('logout') }}" style="font-size:13px; opacity:.85; font-weight:700;">
+          Sair ({{ primeiro_nome }})
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn ghost">Entrar</a>
+        <a href="{{ url_for('register') }}" class="btn">Cadastrar</a>
+      {% endif %}
+    </nav>
+
+  </div>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="muted">Brasil • Versão 2.1 (Auth)</span>
+    <span class="muted">O Ipê não substitui a avaliação por pares.</span>
+  </div>
+</footer>
+
+</body>
+</html>

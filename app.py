@@ -3,7 +3,7 @@ import os
 import psycopg
 from psycopg.rows import dict_row
 
-from flask import Flask, render_template, request, redirect, url_for, flash, abort
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import (
     LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 )
@@ -18,13 +18,10 @@ APP_NAME = "Ipê"
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-ipe-secret-key-CHANGE-ME")
 
-# Cookies melhores (produção/HTTPS)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# No Render (HTTPS), pode ligar:
-# app.config["SESSION_COOKIE_SECURE"] = True
+# app.config["SESSION_COOKIE_SECURE"] = True  # ligar no Render (HTTPS)
 
-# Convite opcional para REGISTRO (não tem convite em "publicar")
 REQUIRE_INVITE = os.environ.get("IPE_REQUIRE_INVITE", "0").strip().lower() in ("1", "true", "yes")
 INVITE_CODE = os.environ.get("IPE_INVITE_CODE", "IPE2026")
 
@@ -39,20 +36,17 @@ DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
 
 
 def normalize_db_url(url: str) -> str:
-    # Neon às vezes fornece postgres://...; psycopg prefere postgresql://...
     if url.startswith("postgres://"):
         return "postgresql://" + url[len("postgres://"):]
     return url
 
 
 DATABASE_URL = normalize_db_url(DATABASE_URL)
-
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL não configurada. Defina a conexão do Neon no ambiente (Render env).")
 
 
 def get_conn():
-    # dict_row faz fetchone/fetchall virar dict
     return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 
@@ -87,12 +81,36 @@ def init_db():
                     link_original TEXT NOT NULL,
                     imagem_url TEXT,
                     data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP
+                    updated_at TIMESTAMP,
+                    views INTEGER NOT NULL DEFAULT 0
                 );
             """)
 
-            # caso você já tenha uma tabela antiga sem updated_at:
+            # migrações seguras
             cur.execute("ALTER TABLE pesquisas ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;")
+            cur.execute("ALTER TABLE pesquisas ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0;")
+
+            # likes
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS likes (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    pesquisa_id INTEGER NOT NULL REFERENCES pesquisas(id) ON DELETE CASCADE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, pesquisa_id)
+                );
+            """)
+
+            # saves
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS saves (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    pesquisa_id INTEGER NOT NULL REFERENCES pesquisas(id) ON DELETE CASCADE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, pesquisa_id)
+                );
+            """)
 
             # índices
             cur.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
@@ -100,11 +118,12 @@ def init_db():
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_pesquisador ON pesquisas(pesquisador);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_data ON pesquisas(data_publicacao);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_user ON pesquisas(pesquisador_id);")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_likes_pesquisa ON likes(pesquisa_id);")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_saves_pesquisa ON saves(pesquisa_id);")
 
         conn.commit()
 
 
-# Inicializa tabelas (na subida do Render)
 try:
     init_db()
 except Exception as e:
@@ -115,36 +134,35 @@ except Exception as e:
 # HELPERS
 # =========================================================
 def normalize_original_link(raw: str) -> str:
-    """
-    Corrige links para o botão "Ver original".
-    - Se for DOI puro: 10.xxxx/xxxxx -> https://doi.org/...
-    - Se começar com doi.org sem http -> adiciona https://
-    - Se não tiver http/https -> adiciona https://
-    """
     s = (raw or "").strip()
     if not s:
         return s
-
     lower = s.lower()
 
-    # DOI puro (começa com 10.)
+    # DOI puro
     if s.startswith("10.") and "/" in s:
         return "https://doi.org/" + s
 
-    # doi.org/xxxxx sem esquema
+    # doi.org/ sem esquema
     if lower.startswith("doi.org/"):
         return "https://" + s
 
-    # http(s) já ok
     if lower.startswith("http://") or lower.startswith("https://"):
         return s
 
-    # qualquer outra coisa vira https://
     return "https://" + s
 
 
-def can_edit(pesquisa: dict) -> bool:
-    return current_user.is_authenticated and int(pesquisa["pesquisador_id"]) == int(current_user.id)
+def is_owner(p: dict) -> bool:
+    return current_user.is_authenticated and int(p["pesquisador_id"]) == int(current_user.id)
+
+
+def get_like_save_state(cur, pesquisa_id: int, user_id: int) -> tuple[bool, bool]:
+    cur.execute("SELECT 1 FROM likes WHERE pesquisa_id=%s AND user_id=%s", (pesquisa_id, user_id))
+    liked = cur.fetchone() is not None
+    cur.execute("SELECT 1 FROM saves WHERE pesquisa_id=%s AND user_id=%s", (pesquisa_id, user_id))
+    saved = cur.fetchone() is not None
+    return liked, saved
 
 
 # =========================================================
@@ -177,7 +195,7 @@ def load_user(user_id):
 
 
 # =========================================================
-# AUTH ROUTES
+# AUTH
 # =========================================================
 @app.route("/registro", methods=["GET", "POST"])
 def register():
@@ -191,7 +209,6 @@ def register():
         senha2 = (request.form.get("senha2") or "").strip()
         instituicao = (request.form.get("instituicao") or "").strip()
 
-        # convite opcional (registro)
         if REQUIRE_INVITE:
             codigo = (request.form.get("codigo_convite") or "").strip()
             if codigo != INVITE_CODE:
@@ -245,8 +262,7 @@ def login():
                 row = cur.fetchone()
 
         if row and check_password_hash(row["password"], senha):
-            user_obj = User(row["id"], row["email"], row["nome"], row.get("instituicao"))
-            login_user(user_obj, remember=True)
+            login_user(User(row["id"], row["email"], row["nome"], row.get("instituicao")), remember=True)
             flash("Bem-vinda(o)!", "success")
             return redirect(url_for("index"))
 
@@ -264,22 +280,50 @@ def logout():
 
 
 # =========================================================
-# APP ROUTES (VITRINE)
+# VITRINE + BUSCA
 # =========================================================
 @app.route("/")
 def index():
     filtro_area = (request.args.get("area") or "").strip()
+    q = (request.args.get("q") or "").strip()
+
+    where = []
+    params = []
 
     if filtro_area and filtro_area in AREAS:
-        query = "SELECT * FROM pesquisas WHERE area = %s ORDER BY id DESC"
-        params = (filtro_area,)
-    else:
-        query = "SELECT * FROM pesquisas ORDER BY id DESC"
-        params = ()
+        where.append("p.area = %s")
+        params.append(filtro_area)
+
+    if q:
+        where.append("(p.titulo ILIKE %s OR p.descoberta ILIKE %s OR p.pesquisador ILIKE %s)")
+        like = f"%{q}%"
+        params.extend([like, like, like])
+
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+    sql = f"""
+        SELECT
+          p.*,
+          COALESCE(l.likes_count, 0) AS likes_count,
+          COALESCE(s.saves_count, 0) AS saves_count
+        FROM pesquisas p
+        LEFT JOIN (
+          SELECT pesquisa_id, COUNT(*)::int AS likes_count
+          FROM likes
+          GROUP BY pesquisa_id
+        ) l ON l.pesquisa_id = p.id
+        LEFT JOIN (
+          SELECT pesquisa_id, COUNT(*)::int AS saves_count
+          FROM saves
+          GROUP BY pesquisa_id
+        ) s ON s.pesquisa_id = p.id
+        {where_sql}
+        ORDER BY p.id DESC
+    """
 
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, params)
+            cur.execute(sql, tuple(params))
             pesquisas = cur.fetchall()
 
     return render_template(
@@ -287,10 +331,98 @@ def index():
         app_name=APP_NAME,
         pesquisas=pesquisas,
         areas=AREAS,
-        filtro_area=filtro_area
+        filtro_area=filtro_area,
+        q=q
     )
 
 
+# =========================================================
+# PÁGINA INDIVIDUAL + VIEWS
+# =========================================================
+@app.route("/pesquisa/<int:pid>")
+def pesquisa(pid):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            # incrementa views
+            cur.execute("UPDATE pesquisas SET views = views + 1 WHERE id=%s", (pid,))
+            conn.commit()
+
+            # carrega a pesquisa + contagens
+            cur.execute("""
+                SELECT
+                  p.*,
+                  COALESCE(l.likes_count, 0) AS likes_count,
+                  COALESCE(s.saves_count, 0) AS saves_count
+                FROM pesquisas p
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS likes_count
+                  FROM likes
+                  GROUP BY pesquisa_id
+                ) l ON l.pesquisa_id = p.id
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS saves_count
+                  FROM saves
+                  GROUP BY pesquisa_id
+                ) s ON s.pesquisa_id = p.id
+                WHERE p.id = %s
+            """, (pid,))
+            p = cur.fetchone()
+
+            if not p:
+                flash("Pesquisa não encontrada.", "error")
+                return redirect(url_for("index"))
+
+            liked = saved = False
+            if current_user.is_authenticated:
+                liked, saved = get_like_save_state(cur, pid, int(current_user.id))
+
+    return render_template(
+        "pesquisa.html",
+        app_name=APP_NAME,
+        p=p,
+        liked=liked,
+        saved=saved,
+        owner=is_owner(p)
+    )
+
+
+# =========================================================
+# LIKE / SAVE (TOGGLE)
+# =========================================================
+@app.route("/pesquisa/<int:pid>/like", methods=["POST"])
+@login_required
+def toggle_like(pid):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            # existe?
+            cur.execute("SELECT 1 FROM likes WHERE pesquisa_id=%s AND user_id=%s", (pid, int(current_user.id)))
+            if cur.fetchone():
+                cur.execute("DELETE FROM likes WHERE pesquisa_id=%s AND user_id=%s", (pid, int(current_user.id)))
+            else:
+                cur.execute("INSERT INTO likes (pesquisa_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                            (pid, int(current_user.id)))
+        conn.commit()
+    return redirect(request.referrer or url_for("pesquisa", pid=pid))
+
+
+@app.route("/pesquisa/<int:pid>/save", methods=["POST"])
+@login_required
+def toggle_save(pid):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM saves WHERE pesquisa_id=%s AND user_id=%s", (pid, int(current_user.id)))
+            if cur.fetchone():
+                cur.execute("DELETE FROM saves WHERE pesquisa_id=%s AND user_id=%s", (pid, int(current_user.id)))
+            else:
+                cur.execute("INSERT INTO saves (pesquisa_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                            (pid, int(current_user.id)))
+        conn.commit()
+    return redirect(request.referrer or url_for("pesquisa", pid=pid))
+
+
+# =========================================================
+# PUBLICAR
+# =========================================================
 @app.route("/publicar", methods=["GET", "POST"])
 @login_required
 def publicar():
@@ -308,13 +440,7 @@ def publicar():
 
         if not titulo or not area or not descoberta or not link_original_raw:
             flash("Preencha os campos obrigatórios.", "error")
-            return render_template(
-                "publicar.html",
-                app_name=APP_NAME,
-                areas=AREAS,
-                evidencias=EVIDENCIAS,
-                form=request.form
-            )
+            return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form=request.form)
 
         if area not in AREAS:
             area = "Humanas"
@@ -348,33 +474,39 @@ def publicar():
         flash("Pesquisa publicada com sucesso!", "success")
         return redirect(url_for("index"))
 
-    return render_template(
-        "publicar.html",
-        app_name=APP_NAME,
-        areas=AREAS,
-        evidencias=EVIDENCIAS,
-        form={}
-    )
+    return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form={})
 
 
+# =========================================================
+# MINHAS + EDITAR + EXCLUIR
+# =========================================================
 @app.route("/minhas")
 @login_required
 def minhas_pesquisas():
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT *
-                FROM pesquisas
-                WHERE pesquisador_id = %s
-                ORDER BY data_publicacao DESC
+                SELECT
+                  p.*,
+                  COALESCE(l.likes_count, 0) AS likes_count,
+                  COALESCE(s.saves_count, 0) AS saves_count
+                FROM pesquisas p
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS likes_count
+                  FROM likes
+                  GROUP BY pesquisa_id
+                ) l ON l.pesquisa_id = p.id
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS saves_count
+                  FROM saves
+                  GROUP BY pesquisa_id
+                ) s ON s.pesquisa_id = p.id
+                WHERE p.pesquisador_id = %s
+                ORDER BY p.data_publicacao DESC
             """, (int(current_user.id),))
             pesquisas = cur.fetchall()
 
-    return render_template(
-        "minhas.html",
-        app_name=APP_NAME,
-        pesquisas=pesquisas
-    )
+    return render_template("minhas.html", app_name=APP_NAME, pesquisas=pesquisas)
 
 
 @app.route("/pesquisa/<int:pid>/editar", methods=["GET", "POST"])
@@ -407,13 +539,7 @@ def editar_pesquisa(pid):
 
             if not titulo or not area or not descoberta or not link_original_raw:
                 flash("Preencha os campos obrigatórios.", "error")
-                return render_template(
-                    "editar.html",
-                    app_name=APP_NAME,
-                    areas=AREAS,
-                    evidencias=EVIDENCIAS,
-                    p=p
-                )
+                return render_template("editar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, p=p)
 
             if area not in AREAS:
                 area = "Humanas"
@@ -447,13 +573,7 @@ def editar_pesquisa(pid):
             flash("Pesquisa atualizada!", "success")
             return redirect(url_for("minhas_pesquisas"))
 
-    return render_template(
-        "editar.html",
-        app_name=APP_NAME,
-        areas=AREAS,
-        evidencias=EVIDENCIAS,
-        p=p
-    )
+    return render_template("editar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, p=p)
 
 
 @app.route("/pesquisa/<int:pid>/excluir", methods=["POST"])
@@ -461,37 +581,51 @@ def editar_pesquisa(pid):
 def excluir_pesquisa(pid):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("""
-                DELETE FROM pesquisas
-                WHERE id=%s AND pesquisador_id=%s
-            """, (int(pid), int(current_user.id)))
+            cur.execute("DELETE FROM pesquisas WHERE id=%s AND pesquisador_id=%s", (int(pid), int(current_user.id)))
         conn.commit()
-
     flash("Pesquisa excluída.", "success")
     return redirect(url_for("minhas_pesquisas"))
 
 
+# =========================================================
+# PERFIL / SOBRE
+# =========================================================
 @app.route("/perfil/<nome>")
 def perfil(nome):
     nome = (nome or "").strip()
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM pesquisas WHERE pesquisador = %s ORDER BY id DESC", (nome,))
+            cur.execute("""
+                SELECT
+                  p.*,
+                  COALESCE(l.likes_count, 0) AS likes_count,
+                  COALESCE(s.saves_count, 0) AS saves_count
+                FROM pesquisas p
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS likes_count
+                  FROM likes
+                  GROUP BY pesquisa_id
+                ) l ON l.pesquisa_id = p.id
+                LEFT JOIN (
+                  SELECT pesquisa_id, COUNT(*)::int AS saves_count
+                  FROM saves
+                  GROUP BY pesquisa_id
+                ) s ON s.pesquisa_id = p.id
+                WHERE p.pesquisador = %s
+                ORDER BY p.id DESC
+            """, (nome,))
             pesquisas = cur.fetchall()
+
     return render_template("perfil.html", app_name=APP_NAME, pesquisas=pesquisas, nome=nome)
 
 
 @app.route("/sobre")
 def sobre():
-    return render_template(
-        "sobre.html",
-        app_name=APP_NAME,
-        codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else "")
-    )
+    return render_template("sobre.html", app_name=APP_NAME, codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else ""))
 
 
 # =========================================================
-# RUN (LOCAL/RENDER)
+# RUN
 # =========================================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))

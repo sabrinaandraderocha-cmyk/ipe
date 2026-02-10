@@ -138,15 +138,7 @@
     placeholder="Cole a URL de uma imagem (opcional)">
 
 
-  <label>Código de Convite (Peça ao admin)</label>
-  <input 
-    name="codigo_convite"
-    value="{{ form.get('codigo_convite','') }}"
-    placeholder="Código de Convite"
-    required
-    class="invite">
-
-
+  
   <div class="actions">
     <button class="btn" type="submit">Publicar</button>
     <a class="btn ghost" href="{{ url_for('index') }}">Cancelar</a>

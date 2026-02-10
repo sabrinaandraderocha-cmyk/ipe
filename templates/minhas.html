@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Minhas pesquisas</h1>
+  <p class="muted">Aqui aparecem apenas as publicações feitas pela sua conta.</p>
+</div>
+
+{% if pesquisas|length == 0 %}
+  <div class="card" style="text-align:center;">
+    <h2>Nenhuma pesquisa publicada ainda.</h2>
+    <p class="muted">Bora publicar a primeira?</p>
+    <a class="btn" href="{{ url_for('publicar') }}">Publicar</a>
+  </div>
+{% else %}
+  <section class="grid">
+    {% for p in pesquisas %}
+      <div class="card">
+        <div class="card-header">
+          <span class="badge-area">{{ p["area"] }}</span>
+          <span class="badge-evidencia {{ p["evidencia"]|lower }}">{{ p["evidencia"] }}</span>
+        </div>
+
+        <h2 class="card-title">{{ p["titulo"] }}</h2>
+
+        <p><b>O que é:</b> {{ p["descoberta"] }}</p>
+
+        <div class="actions">
+          <a class="btn-link" href="{{ p['link_original'] }}" target="_blank" rel="noopener noreferrer">📄 Ver original</a>
+          <a class="btn-link" href="{{ url_for('editar_pesquisa', pid=p['id']) }}">✏️ Editar</a>
+
+          <form method="POST" action="{{ url_for('excluir_pesquisa', pid=p['id']) }}" onsubmit="return confirm('Excluir essa pesquisa?');" style="display:inline;">
+            <button type="submit" class="btn ghost" style="padding:8px 12px;">🗑 Excluir</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </section>
+{% endif %}
+
+{% endblock %}

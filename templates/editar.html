@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Editar pesquisa</h1>
+  <p class="muted">Você só pode editar publicações feitas pela sua conta.</p>
+</div>
+
+<form class="form card" method="POST">
+
+  <div class="two">
+    <div>
+      <label>Selecione a Grande Área</label>
+      <select name="area" required>
+        {% for a in areas %}
+          <option value="{{ a }}" {{ 'selected' if p['area'] == a else '' }}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>Nível de evidência</label>
+      <select name="evidencia">
+        {% for e in evidencias %}
+          <option value="{{ e }}" {{ 'selected' if p['evidencia'] == e else '' }}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <label>Título</label>
+  <input name="titulo" required value="{{ p['titulo'] }}">
+
+  <label>Descoberta principal</label>
+  <textarea name="descoberta" rows="4" required>{{ p['descoberta'] }}</textarea>
+
+  <label>Por que importa? (opcional)</label>
+  <textarea name="importancia" rows="4">{{ p.get('importancia','') }}</textarea>
+
+  <label>Aplicação prática (opcional)</label>
+  <textarea name="aplicacao" rows="4">{{ p.get('aplicacao','') }}</textarea>
+
+  <label>Quem deveria saber disso? (opcional)</label>
+  <input name="publico" value="{{ p.get('publico','') }}">
+
+  <label>Link do artigo original ou DOI</label>
+  <input name="link_original" required value="{{ p['link_original'] }}">
+
+  <label>URL de imagem (opcional)</label>
+  <input name="imagem_url" value="{{ p.get('imagem_url','') }}">
+
+  <div class="actions">
+    <button class="btn" type="submit">Salvar</button>
+    <a class="btn ghost" href="{{ url_for('minhas_pesquisas') }}">Cancelar</a>
+  </div>
+
+</form>
+
+{% endblock %}

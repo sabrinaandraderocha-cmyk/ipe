@@ -50,27 +50,7 @@
 
   <div style="display:flex; flex-direction:column; gap:16px;">
 
-    <div class="card beta-card">
-      <h3 style="margin-top:0;">Participe do Beta</h3>
-      <p class="muted" style="margin-top:0;">
-        Estamos em fase de convite fechado para manter qualidade e reduzir spam nas primeiras publicações.
-      </p>
-
-      {% if codigo_exemplo %}
-        <div class="beta-code">
-          <small>Código de acesso atual</small>
-          <b>{{ codigo_exemplo }}</b>
-        </div>
-      {% endif %}
-
-      <a class="btn" href="{{ url_for('register') }}">Criar minha conta</a>
-
-      {% if codigo_exemplo %}
-        <p class="muted" style="font-size:12px; margin:10px 0 0;">
-          Dica: em produção, o código pode ser definido por variável de ambiente (<b>IPE_INVITE_CODE</b>).
-        </p>
-      {% endif %}
-    </div>
+    <!-- ✅ BETA REMOVIDO -->
 
     <div class="card">
       <h3 style="margin-top:0;">Transparência</h3>

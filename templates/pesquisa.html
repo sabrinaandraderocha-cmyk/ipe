@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="padding: 28px;">
+
+  <div class="card-header" style="margin-bottom: 14px;">
+    <span class="badge-area">{{ p["area"] }}</span>
+    <span class="badge-evidencia {{ p['evidencia']|lower }}">{{ p["evidencia"] }}</span>
+  </div>
+
+  <h1 style="margin: 0 0 10px; line-height: 1.1;">
+    {{ p["titulo"] }}
+  </h1>
+
+  <div class="muted" style="display:flex; flex-wrap:wrap; gap: 10px; align-items:center; margin-bottom: 16px;">
+    <a href="{{ url_for('perfil', nome=p['pesquisador']) }}" style="font-weight:900;">
+      👩‍🔬 {{ p["pesquisador"] }}
+    </a>
+    <span>•</span>
+    <span>👁️ {{ p["views"] }}</span>
+    <span>•</span>
+    <span>❤️ {{ p["likes_count"] }}</span>
+    <span>•</span>
+    <span>🔖 {{ p["saves_count"] }}</span>
+  </div>
+
+  {% if p["imagem_url"] %}
+    <img src="{{ p['imagem_url'] }}" class="card-img" alt="Imagem da pesquisa" style="height: 280px;">
+  {% endif %}
+
+  <div style="margin-top: 14px;">
+    <h3 style="margin: 0 0 6px;">O que é</h3>
+    <p class="muted" style="margin-top:0;">{{ p["descoberta"] }}</p>
+
+    {% if p.get("importancia") %}
+      <h3 style="margin: 18px 0 6px;">Por que importa</h3>
+      <p class="muted" style="margin-top:0;">{{ p["importancia"] }}</p>
+    {% endif %}
+
+    {% if p.get("aplicacao") %}
+      <h3 style="margin: 18px 0 6px;">O que muda na prática</h3>
+      <p class="muted" style="margin-top:0;">{{ p["aplicacao"] }}</p>
+    {% endif %}
+
+    {% if p.get("publico") %}
+      <h3 style="margin: 18px 0 6px;">Quem deveria saber disso</h3>
+      <p class="muted" style="margin-top:0;">{{ p["publico"] }}</p>
+    {% endif %}
+  </div>
+
+  <div class="actions" style="margin-top: 22px;">
+    <a class="btn-link" href="{{ p['link_original'] }}" target="_blank" rel="noopener noreferrer">
+      📄 Ver fonte original
+    </a>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      {% if current_user.is_authenticated %}
+        <form method="POST" action="{{ url_for('toggle_like', pid=p['id']) }}">
+          <button class="btn ghost" type="submit" style="padding:10px 14px;">
+            {% if liked %}❤️ Curtido{% else %}🤍 Curtir{% endif %}
+          </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('toggle_save', pid=p['id']) }}">
+          <button class="btn ghost" type="submit" style="padding:10px 14px;">
+            {% if saved %}🔖 Salvo{% else %}📌 Salvar{% endif %}
+          </button>
+        </form>
+
+        {% if owner %}
+          <a class="btn" href="{{ url_for('editar_pesquisa', pid=p['id']) }}" style="padding:10px 14px;">
+            ✏️ Editar
+          </a>
+        {% endif %}
+      {% else %}
+        <a class="btn" href="{{ url_for('login') }}">Entrar para curtir/salvar</a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

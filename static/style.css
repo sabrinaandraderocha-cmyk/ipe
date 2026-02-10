@@ -414,3 +414,62 @@ input:focus,select:focus,textarea:focus{
   .search-bar .btn{ width:100%; }
   .brand-name{ font-size:22px; }
 }
+
+/* =========================================
+   PATCH: Corrige "campo estranho" + HERO vazio
+   (cole no FINAL do style.css)
+========================================= */
+
+/* 1) ✅ Não deixe estilos globais estragarem checkbox/radio */
+input[type="checkbox"],
+input[type="radio"]{
+  width: auto !important;
+  padding: 0 !important;
+  border-radius: 6px;
+  box-shadow: none !important;
+}
+
+/* Se não era pra existir checkbox ali dentro do filtro, some com ele */
+.search-bar input[type="checkbox"],
+.search-bar input[type="radio"]{
+  display: none;
+}
+
+/* 2) ✅ Alinha filtro: select ocupa tudo e botão fica do mesmo tamanho */
+.search-bar{
+  align-items: stretch;        /* importante */
+}
+
+.search-bar select{
+  flex: 1;
+  min-width: 260px;
+  height: 46px;
+}
+
+.search-bar .btn{
+  height: 46px;
+  padding: 0 18px;
+  white-space: nowrap;
+}
+
+/* 3) ✅ HERO: menos "vazio" e texto maior */
+.hero-card{
+  padding: 26px 28px;
+}
+
+.hero-card h1{
+  font-size: 38px;
+  line-height: 1.06;
+  margin: 0 0 10px;
+}
+
+.hero-card p{
+  font-size: 17px;
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+/* 4) Callout não precisa ficar alto */
+.callout{
+  height: fit-content;
+}

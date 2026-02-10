@@ -14,9 +14,14 @@
 <header class="topbar">
   <div class="topbar-inner">
 
+    <!-- MARCA -->
     <div class="brand">
       <a href="{{ url_for('index') }}" class="brand-link" aria-label="Página inicial do Ipê">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Ipê Ciência" class="logo-img">
+        <img
+          src="{{ url_for('static', filename='logo.png') }}"
+          alt="Ipê Ciência"
+          class="logo-img"
+        >
 
         <div class="brand-text">
           <span class="brand-name">Ipê</span>
@@ -25,15 +30,23 @@
       </a>
     </div>
 
+    <!-- NAVEGAÇÃO -->
     <nav class="nav" aria-label="Navegação principal">
       <a href="{{ url_for('index') }}">Explorar</a>
       <a href="{{ url_for('sobre') }}">Sobre</a>
 
       {% if current_user.is_authenticated %}
-        <a href="{{ url_for('publicar') }}" class="btn">Publicar</a>
+        <a href="{{ url_for('minhas_pesquisas') }}">Minhas</a>
+
+        <a href="{{ url_for('publicar') }}" class="btn">
+          Publicar
+        </a>
 
         {% set primeiro_nome = (current_user.nome or "Conta").split()[0] %}
-        <a href="{{ url_for('logout') }}" style="font-size:13px; opacity:.85; font-weight:700;">
+        <a
+          href="{{ url_for('logout') }}"
+          style="font-size:13px; opacity:.85; font-weight:700;"
+        >
           Sair ({{ primeiro_nome }})
         </a>
       {% else %}
@@ -46,17 +59,22 @@
 </header>
 
 <main class="container">
+
+  <!-- FLASH MESSAGES -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="flash-stack">
         {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
+          <div class="flash {{ category }}">
+            {{ message }}
+          </div>
         {% endfor %}
       </div>
     {% endif %}
   {% endwith %}
 
   {% block content %}{% endblock %}
+
 </main>
 
 <footer class="footer">

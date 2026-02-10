@@ -12,8 +12,11 @@
 
     <form method="POST" novalidate>
 
+      {# ✅ Se o backend não mandar require_invite, assume False #}
+      {% set _require_invite = require_invite|default(false) %}
+
       {# ✅ Convite só aparece se o backend exigir #}
-      {% if require_invite %}
+      {% if _require_invite %}
         <div class="form-group">
           <label>Código de Convite</label>
           <input

@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import psycopg
 from psycopg.rows import dict_row
@@ -18,10 +19,13 @@ APP_NAME = "Ipê"
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-ipe-secret-key-CHANGE-ME")
 
+# Cookies melhores (produção/HTTPS)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# app.config["SESSION_COOKIE_SECURE"] = True  # ligar no Render (HTTPS)
+# No Render (HTTPS), ative:
+# app.config["SESSION_COOKIE_SECURE"] = True
 
+# Cadastro aberto por padrão (convite opcional)
 REQUIRE_INVITE = os.environ.get("IPE_REQUIRE_INVITE", "0").strip().lower() in ("1", "true", "yes")
 INVITE_CODE = os.environ.get("IPE_INVITE_CODE", "IPE2026")
 
@@ -34,17 +38,22 @@ EVIDENCIAS = ["Forte", "Moderada", "Inicial"]
 # =========================================================
 DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
 
+
 def normalize_db_url(url: str) -> str:
+    # alguns providers ainda retornam postgres://
     if url.startswith("postgres://"):
         return "postgresql://" + url[len("postgres://"):]
     return url
+
 
 DATABASE_URL = normalize_db_url(DATABASE_URL)
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL não configurada. Defina a conexão do Neon no ambiente.")
 
+
 def get_conn():
+    # dict_row faz fetch retornar dict (compatível com seus templates)
     return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 
@@ -58,7 +67,7 @@ def init_db():
                     password TEXT NOT NULL,
                     nome TEXT NOT NULL,
                     instituicao TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT NOW()
                 );
             """)
             cur.execute("""
@@ -75,7 +84,7 @@ def init_db():
                     evidencia TEXT NOT NULL,
                     link_original TEXT NOT NULL,
                     imagem_url TEXT,
-                    data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    data_publicacao TIMESTAMP DEFAULT NOW()
                 );
             """)
             cur.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
@@ -83,6 +92,20 @@ def init_db():
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_pesquisador ON pesquisas(pesquisador);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_data ON pesquisas(data_publicacao);")
         conn.commit()
+
+
+# Rode init_db no start (se falhar, melhor ver no log do Render)
+init_db()
+
+
+# =========================================================
+# DEBUG 500 (Render logs)
+# =========================================================
+@app.errorhandler(500)
+def internal_error(e):
+    print("🔥 ERRO 500:", e)
+    traceback.print_exc()
+    return "Erro interno (500). Veja os logs do Render para detalhes.", 500
 
 
 # =========================================================
@@ -105,9 +128,17 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
+    try:
+        uid = int(user_id)
+    except (TypeError, ValueError):
+        return None
+
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, email, nome, instituicao FROM users WHERE id = %s", (user_id,))
+            cur.execute(
+                "SELECT id, email, nome, instituicao FROM users WHERE id = %s",
+                (uid,)
+            )
             row = cur.fetchone()
             if row:
                 return User(row["id"], row["email"], row["nome"], row.get("instituicao"))
@@ -129,14 +160,20 @@ def register():
         senha2 = (request.form.get("senha2") or "").strip()
         instituicao = (request.form.get("instituicao") or "").strip()
 
+        # Convite opcional
         if REQUIRE_INVITE:
             codigo = (request.form.get("codigo_convite") or "").strip()
             if codigo != INVITE_CODE:
                 flash("Código de convite inválido.", "error")
                 return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
 
+        # Validações
         if not nome or not email or not senha:
             flash("Preencha nome, email e senha.", "error")
+            return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
+
+        if "@" not in email or "." not in email:
+            flash("Email inválido.", "error")
             return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
 
         if senha != senha2:
@@ -155,9 +192,10 @@ def register():
                     return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
 
                 hashed = generate_password_hash(senha)
+                # ✅ CORRIGIDO: instituicao (sem typo)
                 cur.execute(
-                    "INSERT INTO users (email, password, nome, instituuicao) VALUES (%s, %s, %s, %s)",
-                    (email, hashed, nome, instituicao)
+                    "INSERT INTO users (email, password, nome, instituicao) VALUES (%s, %s, %s, %s)",
+                    (email, hashed, nome, instituicao or None)
                 )
             conn.commit()
 
@@ -207,19 +245,27 @@ def logout():
 def index():
     filtro_area = (request.args.get("area") or "").strip()
 
-    query = "SELECT * FROM pesquisas ORDER BY id DESC"
+    base_query = "SELECT * FROM pesquisas"
     params = ()
 
     if filtro_area and filtro_area in AREAS:
-        query = "SELECT * FROM pesquisas WHERE area = %s ORDER BY id DESC"
+        query = base_query + " WHERE area = %s ORDER BY id DESC"
         params = (filtro_area,)
+    else:
+        query = base_query + " ORDER BY id DESC"
 
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
             pesquisas = cur.fetchall()
 
-    return render_template("index.html", app_name=APP_NAME, pesquisas=pesquisas, areas=AREAS, filtro_area=filtro_area)
+    return render_template(
+        "index.html",
+        app_name=APP_NAME,
+        pesquisas=pesquisas,
+        areas=AREAS,
+        filtro_area=filtro_area
+    )
 
 
 @app.route("/publicar", methods=["GET", "POST"])
@@ -239,7 +285,13 @@ def publicar():
 
         if not titulo or not area or not descoberta or not link_original:
             flash("Preencha os campos obrigatórios.", "error")
-            return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form=request.form)
+            return render_template(
+                "publicar.html",
+                app_name=APP_NAME,
+                areas=AREAS,
+                evidencias=EVIDENCIAS,
+                form=request.form
+            )
 
         if area not in AREAS:
             area = "Humanas"
@@ -259,43 +311,54 @@ def publicar():
                     titulo,
                     area,
                     descoberta,
-                    importancia,
-                    aplicacao,
-                    publico,
+                    importancia or None,
+                    aplicacao or None,
+                    publico or None,
                     evidencia,
                     link_original,
-                    imagem_url
+                    imagem_url or None
                 ))
             conn.commit()
 
         flash("Pesquisa publicada com sucesso!", "success")
         return redirect(url_for("index"))
 
-    return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form={})
+    return render_template(
+        "publicar.html",
+        app_name=APP_NAME,
+        areas=AREAS,
+        evidencias=EVIDENCIAS,
+        form={}
+    )
 
 
 @app.route("/perfil/<nome>")
 def perfil(nome):
     nome = (nome or "").strip()
+
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM pesquisas WHERE pesquisador = %s ORDER BY id DESC", (nome,))
+            cur.execute(
+                "SELECT * FROM pesquisas WHERE pesquisador = %s ORDER BY id DESC",
+                (nome,)
+            )
             pesquisas = cur.fetchall()
+
     return render_template("perfil.html", app_name=APP_NAME, pesquisas=pesquisas, nome=nome)
 
 
 @app.route("/sobre")
 def sobre():
-    return render_template("sobre.html", app_name=APP_NAME, codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else ""))
+    return render_template(
+        "sobre.html",
+        app_name=APP_NAME,
+        codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else "")
+    )
 
 
-# Inicializa tabelas
-try:
-    init_db()
-except Exception as e:
-    print("Erro ao iniciar DB:", e)
-
-
+# =========================================================
+# RUN (LOCAL/RENDER)
+# =========================================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     debug = os.environ.get("FLASK_DEBUG", "0").strip().lower() in ("1", "true", "yes")

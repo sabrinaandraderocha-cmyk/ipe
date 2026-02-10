@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlparse
 
 import psycopg
 from psycopg.rows import dict_row
@@ -19,13 +18,10 @@ APP_NAME = "Ipê"
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-ipe-secret-key-CHANGE-ME")
 
-# Cookies melhores (produção/HTTPS)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# No Render (HTTPS), pode ativar:
-# app.config["SESSION_COOKIE_SECURE"] = True
+# app.config["SESSION_COOKIE_SECURE"] = True  # ligar no Render (HTTPS)
 
-# Cadastro aberto por padrão (convite opcional por env)
 REQUIRE_INVITE = os.environ.get("IPE_REQUIRE_INVITE", "0").strip().lower() in ("1", "true", "yes")
 INVITE_CODE = os.environ.get("IPE_INVITE_CODE", "IPE2026")
 
@@ -36,23 +32,19 @@ EVIDENCIAS = ["Forte", "Moderada", "Inicial"]
 # =========================================================
 # POSTGRES (NEON)
 # =========================================================
-DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
 
-def _normalize_db_url(url: str) -> str:
-    # Alguns serviços fornecem postgres://, psycopg prefere postgresql://
+def normalize_db_url(url: str) -> str:
     if url.startswith("postgres://"):
         return "postgresql://" + url[len("postgres://"):]
     return url
 
-DATABASE_URL = _normalize_db_url(DATABASE_URL)
+DATABASE_URL = normalize_db_url(DATABASE_URL)
 
 if not DATABASE_URL:
-    # Em produção, não subir sem DB.
-    # Localmente, você pode setar DATABASE_URL também.
-    raise RuntimeError("DATABASE_URL não configurada. Defina a conexão do Neon.")
+    raise RuntimeError("DATABASE_URL não configurada. Defina a conexão do Neon no ambiente.")
 
 def get_conn():
-    # row_factory=dict_row -> templates podem usar p["campo"]
     return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 
@@ -69,7 +61,6 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS pesquisas (
                     id SERIAL PRIMARY KEY,
@@ -87,13 +78,10 @@ def init_db():
                     data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-
-            # Índices (IF NOT EXISTS é suportado em Postgres)
             cur.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_area ON pesquisas(area);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_pesquisador ON pesquisas(pesquisador);")
             cur.execute("CREATE INDEX IF NOT EXISTS idx_pesquisas_data ON pesquisas(data_publicacao);")
-
         conn.commit()
 
 
@@ -122,7 +110,7 @@ def load_user(user_id):
             cur.execute("SELECT id, email, nome, instituicao FROM users WHERE id = %s", (user_id,))
             row = cur.fetchone()
             if row:
-                return User(row["id"], row["email"], row["nome"], row["instituicao"])
+                return User(row["id"], row["email"], row["nome"], row.get("instituicao"))
     return None
 
 
@@ -155,10 +143,6 @@ def register():
             flash("As senhas não coincidem.", "error")
             return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
 
-        if "@" not in email or "." not in email:
-            flash("Email inválido.", "error")
-            return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
-
         if len(senha) < 6:
             flash("Senha muito curta. Use pelo menos 6 caracteres.", "error")
             return render_template("register.html", app_name=APP_NAME, require_invite=REQUIRE_INVITE)
@@ -172,7 +156,7 @@ def register():
 
                 hashed = generate_password_hash(senha)
                 cur.execute(
-                    "INSERT INTO users (email, password, nome, instituicao) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO users (email, password, nome, instituuicao) VALUES (%s, %s, %s, %s)",
                     (email, hashed, nome, instituicao)
                 )
             conn.commit()
@@ -235,13 +219,7 @@ def index():
             cur.execute(query, params)
             pesquisas = cur.fetchall()
 
-    return render_template(
-        "index.html",
-        app_name=APP_NAME,
-        pesquisas=pesquisas,
-        areas=AREAS,
-        filtro_area=filtro_area
-    )
+    return render_template("index.html", app_name=APP_NAME, pesquisas=pesquisas, areas=AREAS, filtro_area=filtro_area)
 
 
 @app.route("/publicar", methods=["GET", "POST"])
@@ -261,13 +239,7 @@ def publicar():
 
         if not titulo or not area or not descoberta or not link_original:
             flash("Preencha os campos obrigatórios.", "error")
-            return render_template(
-                "publicar.html",
-                app_name=APP_NAME,
-                areas=AREAS,
-                evidencias=EVIDENCIAS,
-                form=request.form
-            )
+            return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form=request.form)
 
         if area not in AREAS:
             area = "Humanas"
@@ -280,7 +252,7 @@ def publicar():
                     INSERT INTO pesquisas (
                         pesquisador_id, pesquisador, titulo, area, descoberta,
                         importancia, aplicacao, publico, evidencia, link_original, imagem_url
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     int(current_user.id),
                     current_user.nome,
@@ -299,13 +271,7 @@ def publicar():
         flash("Pesquisa publicada com sucesso!", "success")
         return redirect(url_for("index"))
 
-    return render_template(
-        "publicar.html",
-        app_name=APP_NAME,
-        areas=AREAS,
-        evidencias=EVIDENCIAS,
-        form={}
-    )
+    return render_template("publicar.html", app_name=APP_NAME, areas=AREAS, evidencias=EVIDENCIAS, form={})
 
 
 @app.route("/perfil/<nome>")
@@ -315,33 +281,21 @@ def perfil(nome):
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM pesquisas WHERE pesquisador = %s ORDER BY id DESC", (nome,))
             pesquisas = cur.fetchall()
-
     return render_template("perfil.html", app_name=APP_NAME, pesquisas=pesquisas, nome=nome)
 
 
 @app.route("/sobre")
 def sobre():
-    return render_template(
-        "sobre.html",
-        app_name=APP_NAME,
-        codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else "")
-    )
+    return render_template("sobre.html", app_name=APP_NAME, codigo_exemplo=(INVITE_CODE if REQUIRE_INVITE else ""))
 
 
-# =========================================================
-# INIT DB ON START (safe)
-# =========================================================
-# Isso garante que o Render crie as tabelas ao subir.
+# Inicializa tabelas
 try:
     init_db()
 except Exception as e:
-    # Em produção, melhor logar do que derrubar hard.
     print("Erro ao iniciar DB:", e)
 
 
-# =========================================================
-# RUN
-# =========================================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     debug = os.environ.get("FLASK_DEBUG", "0").strip().lower() in ("1", "true", "yes")

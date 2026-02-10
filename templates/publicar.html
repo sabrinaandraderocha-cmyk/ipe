@@ -34,7 +34,6 @@
     </div>
   </div>
 
-
   <div class="two">
     <div>
       <label>Selecione a Grande Área</label>
@@ -65,14 +64,12 @@
     </div>
   </div>
 
-
   <label>Título</label>
   <input 
     name="titulo"
     value="{{ form.get('titulo','') }}"
     placeholder="Título da pesquisa"
     required>
-
 
   <div class="two">
     <div>
@@ -93,7 +90,6 @@
     </div>
   </div>
 
-
   <label>Descoberta principal (obrigatório)</label>
   <textarea 
     name="descoberta"
@@ -101,13 +97,11 @@
     placeholder="Imagine que está explicando para um amigo no bar: O que você descobriu?"
     required>{{ form.get('descoberta','') }}</textarea>
 
-
   <label>Por que a sociedade deveria se importar com isso agora? (opcional)</label>
   <textarea 
     name="importancia"
     rows="4"
     placeholder="Por que isso importa hoje?">{{ form.get('importancia','') }}</textarea>
-
 
   <label>Aplicação prática (opcional)</label>
   <textarea 
@@ -115,13 +109,11 @@
     rows="4"
     placeholder="O que muda na prática?">{{ form.get('aplicacao','') }}</textarea>
 
-
   <label>Quem deveria saber disso? (opcional)</label>
   <input 
     name="publico"
     value="{{ form.get('publico','') }}"
     placeholder="Ex: profissionais, gestores, professores, legisladores...">
-
 
   <label>Link do artigo original ou DOI (Validação Científica)</label>
   <input 
@@ -130,15 +122,6 @@
     placeholder="Ex: https://doi.org/..."
     required>
 
-
-  <label>URL de uma imagem ilustrativa (Opcional)</label>
-  <input 
-    name="imagem_url"
-    value="{{ form.get('imagem_url','') }}"
-    placeholder="Cole a URL de uma imagem (opcional)">
-
-
-  
   <div class="actions">
     <button class="btn" type="submit">Publicar</button>
     <a class="btn ghost" href="{{ url_for('index') }}">Cancelar</a>

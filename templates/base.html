@@ -8,6 +8,58 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+
+  <style>
+    /* Logo interativo */
+    .brand-link{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      text-decoration:none;
+      transition:transform .18s ease, opacity .18s ease;
+    }
+
+    .brand-link:hover{
+      transform:scale(1.03);
+      opacity:.96;
+    }
+
+    .brand-link:active{
+      transform:scale(.97);
+    }
+
+    .logo-img{
+      height:56px;
+      width:auto;
+      display:block;
+      cursor:pointer;
+      transition:transform .22s ease, filter .22s ease;
+    }
+
+    .brand-link:hover .logo-img{
+      transform:rotate(-3deg) scale(1.08);
+      filter:drop-shadow(0 4px 10px rgba(255,255,255,.18));
+    }
+
+    .brand-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+
+    .brand-name{
+      font-size:2rem;
+      font-weight:800;
+      color:#fff;
+    }
+
+    .brand-subtitle{
+      font-size:.95rem;
+      color:rgba(255,255,255,.88);
+      font-weight:600;
+    }
+  </style>
+
 </head>
 <body>
 
@@ -17,6 +69,7 @@
     <!-- MARCA -->
     <div class="brand">
       <a href="{{ url_for('index') }}" class="brand-link" aria-label="Página inicial do Ipê">
+
         <img
           src="{{ url_for('static', filename='logo.png') }}"
           alt="Logo do Ipê"
@@ -27,6 +80,7 @@
           <span class="brand-name">Ipê</span>
           <span class="brand-subtitle">Onde a ciência brasileira floresce</span>
         </div>
+
       </a>
     </div>
 

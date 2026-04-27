@@ -1,70 +1,104 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="page-head">
-  <h1>Sobre o Ipê</h1>
+<section class="page-head" style="text-align:center; max-width:820px; margin:0 auto 34px;">
+  <span style="
+    display:inline-block;
+    padding:8px 14px;
+    border-radius:999px;
+    background:rgba(244,196,48,.18);
+    color:#0f4f3a;
+    font-weight:800;
+    margin-bottom:14px;
+  ">
+    🌳 Ciência brasileira em linguagem clara
+  </span>
 
-  <p>
+  <h1 style="font-size:2.4rem; margin-bottom:12px;">
+    Sobre o Ipê
+  </h1>
+
+  <p style="font-size:1.08rem; line-height:1.7; color:var(--muted);">
     O Ipê é uma vitrine de divulgação científica brasileira.
-    Pesquisadores publicam a essência de seus trabalhos em linguagem clara,
+    Aqui, pesquisadores apresentam a essência de seus trabalhos em linguagem clara,
     mantendo sempre o acesso à fonte original.
   </p>
 
-  <div class="page-kpis">
+  <div class="page-kpis" style="justify-content:center; margin-top:22px;">
     <span class="kpi">Ciência aberta</span>
     <span class="kpi">Clareza</span>
     <span class="kpi">Impacto social</span>
     <span class="kpi">Brasil</span>
   </div>
-</div>
+</section>
+
 
 <div class="about-grid">
 
   <!-- BLOCO PRINCIPAL -->
-  <div class="card">
-    <h2 style="margin-top:0;">Por que o Ipê existe?</h2>
+  <div class="card" style="padding:28px;">
 
-    <p class="muted">
-      O Brasil produz conhecimento científico de enorme valor, mas grande parte dele permanece
-      restrita a ambientes acadêmicos ou textos altamente técnicos.
+    <h2 style="margin-top:0; font-size:1.7rem;">
+      Por que o Ipê existe?
+    </h2>
+
+    <p class="muted" style="font-size:1rem; line-height:1.7;">
+      O Brasil produz conhecimento científico de enorme valor, mas grande parte dele ainda permanece
+      restrita a ambientes acadêmicos, bases especializadas ou textos altamente técnicos.
     </p>
 
-    <p class="muted">
+    <p class="muted" style="font-size:1rem; line-height:1.7;">
       O Ipê nasce para reduzir essa distância, aproximando quem pesquisa de quem precisa compreender,
       aplicar e se beneficiar desse conhecimento.
     </p>
 
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:14px;
+      margin-top:24px;
+    ">
 
-    <!-- MISSÃO -->
-    <div class="card" style="background:rgba(17,74,166,.05); border-color: rgba(17,74,166,.14); margin-top:14px;">
-      <h3 style="margin:0 0 6px;"> Missão</h3>
+      <!-- MISSÃO -->
+      <div class="card" style="
+        background:rgba(17,74,166,.06);
+        border-color:rgba(17,74,166,.14);
+        box-shadow:none;
+      ">
+        <h3 style="margin:0 0 8px;">🎯 Missão</h3>
+        <p class="muted" style="margin:0; line-height:1.6;">
+          Tornar a pesquisa brasileira mais visível, compreensível e socialmente relevante.
+        </p>
+      </div>
 
-      <p class="muted" style="margin:0;">
-        Tornar a pesquisa brasileira mais visível, compreensível e socialmente relevante.
-      </p>
+      <!-- COMO FUNCIONA -->
+      <div class="card" style="
+        background:rgba(244,196,48,.18);
+        border-color:rgba(244,196,48,.32);
+        box-shadow:none;
+      ">
+        <h3 style="margin:0 0 8px;">✨ Como funciona</h3>
+        <p class="muted" style="margin:0; line-height:1.6;">
+          Cada publicação apresenta <b>o que foi descoberto</b>,
+          <b>por que importa</b> e <b>qual seu impacto prático</b>.
+        </p>
+      </div>
+
     </div>
 
+    <!-- COMPROMISSO -->
+    <div style="
+      margin-top:24px;
+      padding:20px;
+      border-radius:18px;
+      background:linear-gradient(135deg, rgba(10,79,58,.08), rgba(244,196,48,.12));
+      border:1px solid rgba(10,79,58,.12);
+    ">
+      <h3 style="margin:0 0 8px;">🔎 Compromisso com a fonte</h3>
 
-    <!-- COMO FUNCIONA -->
-    <div class="card" style="background:rgba(244,196,48,.16); border-color: rgba(244,196,48,.28); margin-top:12px;">
-      <h3 style="margin:0 0 6px;"> Como funciona</h3>
-
-      <p class="muted" style="margin:0;">
-        Cada publicação apresenta de forma direta:
-        <b>o que foi descoberto</b>,
-        <b>por que isso importa</b>
-        e <b>qual seu impacto prático</b>.
-      </p>
-    </div>
-
-
-    <!-- VALIDAÇÃO -->
-    <div style="margin-top:16px;">
-      <h3 style="margin:0 0 6px;">🔎 Compromisso com a fonte</h3>
-
-      <p class="muted" style="margin:0;">
-        Toda postagem exige acesso ao material original: artigo, tese ou DOI,
-        permitindo que qualquer pessoa aprofunde a leitura.
+      <p class="muted" style="margin:0; line-height:1.7;">
+        Toda postagem exige acesso ao material original — artigo, tese, dissertação ou DOI —
+        permitindo que qualquer pessoa aprofunde a leitura e verifique a fonte.
       </p>
     </div>
 
@@ -74,17 +108,40 @@
   <!-- BLOCO LATERAL -->
   <div style="display:flex; flex-direction:column; gap:16px;">
 
-    <div class="card">
-      <h3 style="margin-top:0;">Visão</h3>
+    <div class="card" style="padding:24px;">
+      <h3 style="margin-top:0;">🌱 Visão</h3>
 
-      <p class="muted" style="margin-top:0;">
+      <p class="muted" style="line-height:1.7;">
         Acreditamos em uma ciência mais acessível, conectada à sociedade
         e capaz de gerar impacto real.
       </p>
 
-      <p class="muted">
+      <p class="muted" style="line-height:1.7; margin-bottom:0;">
         O Ipê busca se tornar um espaço confiável para descoberta,
         leitura e circulação do conhecimento científico brasileiro.
+      </p>
+    </div>
+
+    <div class="card" style="
+      padding:24px;
+      background:#0f4f3a;
+      color:white;
+      border:none;
+    ">
+      <h3 style="margin-top:0; color:white;">🌼 O que valorizamos</h3>
+
+      <p style="line-height:1.7; color:rgba(255,255,255,.88); margin-bottom:0;">
+        Linguagem simples, responsabilidade científica, acesso à fonte original
+        e valorização da produção acadêmica brasileira.
+      </p>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <h3 style="margin-top:0;">📚 Para quem é?</h3>
+
+      <p class="muted" style="line-height:1.7; margin-bottom:0;">
+        Para pesquisadores, estudantes, profissionais, jornalistas, gestores
+        e qualquer pessoa interessada em ciência brasileira.
       </p>
     </div>
 
